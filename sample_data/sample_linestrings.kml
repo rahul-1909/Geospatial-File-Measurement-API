@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Survey Infrastructure Lines</name>
+    <description>Sample linear features for distance measurement</description>
+    <Placemark id="pipeline_segment_1">
+      <name>Main Water Pipeline</name>
+      <description>Utility transmission line</description>
+      <ExtendedData>
+        <Data name="material">
+          <value>Ductile Iron</value>
+        </Data>
+        <Data name="diameter_mm">
+          <value>500</value>
+        </Data>
+      </ExtendedData>
+      <LineString>
+        <coordinates>
+          -74.0050,40.7100,0
+          -74.0030,40.7120,0
+          -74.0010,40.7150,0
+          -73.9980,40.7180,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+    <Placemark id="fiber_optic_run">
+      <name>Fiber Optic Line</name>
+      <LineString>
+        <coordinates>
+          -74.0000,40.7200,0
+          -73.9950,40.7250,0
+          -73.9900,40.7300,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>

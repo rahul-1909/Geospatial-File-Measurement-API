@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Survey Land Parcels</name>
+    <description>Sample land parcel polygons for boundary measurement</description>
+    <Placemark id="parcel_alpha">
+      <name>Parcel Alpha</name>
+      <description>Commercial agricultural field</description>
+      <ExtendedData>
+        <Data name="zoning">
+          <value>Agricultural</value>
+        </Data>
+        <Data name="owner">
+          <value>Apex Agri Corp</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -74.0060,40.7128,0
+              -74.0040,40.7128,0
+              -74.0040,40.7145,0
+              -74.0060,40.7145,0
+              -74.0060,40.7128,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark id="parcel_beta">
+      <name>Parcel Beta (With Inner Reservoir Hole)</name>
+      <description>Residential tract with protected lake hole</description>
+      <ExtendedData>
+        <Data name="zoning">
+          <value>Residential-R2</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -74.0100,40.7100,0
+              -74.0050,40.7100,0
+              -74.0050,40.7150,0
+              -74.0100,40.7150,0
+              -74.0100,40.7100,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+        <innerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -74.0080,40.7120,0
+              -74.0070,40.7120,0
+              -74.0070,40.7130,0
+              -74.0080,40.7130,0
+              -74.0080,40.7120,0
+            </coordinates>
+          </LinearRing>
+        </innerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

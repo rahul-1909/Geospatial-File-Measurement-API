@@ -1,0 +1,34 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Database and SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads and temporary processing data
+uploads/*
+!uploads/.gitkeep
+temp/*
+!temp/.gitkeep
+
+# Pytest & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

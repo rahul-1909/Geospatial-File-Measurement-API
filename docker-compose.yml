@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  geospatial-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geospatial_measurement_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./geospatial.db:/app/geospatial.db
+    environment:
+      - PROJECT_NAME=Geospatial File Measurement API
+      - API_V1_PREFIX=/api
+      - MAX_UPLOAD_SIZE_BYTES=104857600
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

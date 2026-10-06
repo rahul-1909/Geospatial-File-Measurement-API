@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Comprehensive Cadastral Survey</name>
+    <description>Dataset combining boundary polygons, pipeline lines, and survey markers</description>
+    <Placemark id="zone_park">
+      <name>Municipal Park</name>
+      <ExtendedData>
+        <Data name="category"><value>Recreation</value></Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -122.4194,37.7749,0
+              -122.4170,37.7749,0
+              -122.4170,37.7765,0
+              -122.4194,37.7765,0
+              -122.4194,37.7749,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark id="trail_route">
+      <name>Bicycle Trail</name>
+      <ExtendedData>
+        <Data name="surface"><value>Paved</value></Data>
+      </ExtendedData>
+      <LineString>
+        <coordinates>
+          -122.4200,37.7740,0
+          -122.4180,37.7750,0
+          -122.4160,37.7770,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+    <Placemark id="marker_gateway">
+      <name>Park Gateway GPS Landmark</name>
+      <Point>
+        <coordinates>-122.4194,37.7749,0</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>

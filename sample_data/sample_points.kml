@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Survey Control Benchmarks</name>
+    <description>Sample point features for non-measurement validation</description>
+    <Placemark id="bm_001">
+      <name>Benchmark Alpha</name>
+      <description>Geodetic primary survey station</description>
+      <ExtendedData>
+        <Data name="elevation_m">
+          <value>12.4</value>
+        </Data>
+      </ExtendedData>
+      <Point>
+        <coordinates>-74.0060,40.7128,12.4</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark id="bm_002">
+      <name>Benchmark Beta</name>
+      <description>Secondary geodetic control pin</description>
+      <Point>
+        <coordinates>-74.0040,40.7145,15.2</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>
