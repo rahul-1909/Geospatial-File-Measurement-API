@@ -12,13 +12,20 @@ logger = logging.getLogger(__name__)
 class CRSService:
     """
     Production service for identifying Coordinate Reference Systems (CRS),
-    detecting geographic vs projected coordinate systems, and selecting the
-    optimal metric projected CRS (such as Universal Transverse Mercator - UTM)
-    to calculate distortion-free measurements.
+    detecting geographic vs projected coordinate systems, handling metric vs imperial units,
+    and selecting the optimal metric projected CRS (such as UTM) for accurate planar measurements.
     """
 
     @staticmethod
-    def normalize_crs(crs_input: Optional[str]) -> str:
+    def clean_crs_string(crs_input: Optional[str]) -> str:
+        """Strip annotations such as '(assumed, missing .prj)' to obtain a valid CRS string."""
+        if not crs_input:
+            return "EPSG:4326"
+        clean = crs_input.split("(")[0].strip()
+        return clean or "EPSG:4326"
+
+    @classmethod
+    def normalize_crs(cls, crs_input: Optional[str]) -> str:
         """
         Normalize and validate a CRS string (e.g. 'EPSG:4326', 'WGS84', WKT).
         Returns standardized 'EPSG:XXXX' or proj string.
@@ -26,7 +33,7 @@ class CRSService:
         if not crs_input or crs_input.strip() == "":
             return "EPSG:4326"
 
-        clean_input = crs_input.strip()
+        clean_input = cls.clean_crs_string(crs_input)
         try:
             crs_obj = pyproj.CRS.from_user_input(clean_input)
             auth_code = crs_obj.to_authority()
@@ -58,8 +65,9 @@ class CRSService:
     @classmethod
     def is_geographic(cls, crs_str: str) -> bool:
         """Returns True if the CRS uses angular units (degrees/lat-lon)."""
+        clean = cls.clean_crs_string(crs_str)
         try:
-            crs_obj = pyproj.CRS.from_user_input(crs_str)
+            crs_obj = pyproj.CRS.from_user_input(clean)
             return crs_obj.is_geographic
         except Exception:
             # Default assumption for unrecognized is geographic WGS84
@@ -71,16 +79,20 @@ class CRSService:
         Determines the optimal metric projected CRS for a given geometry.
         
         Strategy:
-        1. If source CRS is already projected and has linear units in meters, retain source CRS.
-        2. If source CRS is geographic (degrees), compute the geometry's centroid (lon, lat).
-        3. Dynamically calculate the corresponding UTM Zone:
+        1. If source CRS is already projected in meters, retain source CRS.
+        2. If source CRS is projected in non-metric units (e.g., US Survey Feet),
+           convert centroid coordinates to WGS84 (EPSG:4326) degrees first.
+        3. If source CRS is geographic (degrees), use the geometry's centroid (lon, lat).
+        4. Dynamically compute the corresponding UTM Zone from (lon, lat):
            - zone = floor((lon + 180) / 6) + 1 (clamped to 1-60)
            - Northern hemisphere (lat >= 0): EPSG:32600 + zone
            - Southern hemisphere (lat < 0): EPSG:32700 + zone
            - Extreme polar latitudes (|lat| > 84): Universal Polar Stereographic (UPS)
         """
+        clean_source = cls.clean_crs_string(source_crs)
+        crs_obj = None
         try:
-            crs_obj = pyproj.CRS.from_user_input(source_crs)
+            crs_obj = pyproj.CRS.from_user_input(clean_source)
             if crs_obj.is_projected:
                 # If already projected, check if linear unit is meter
                 axis_info = crs_obj.axis_info
@@ -88,16 +100,25 @@ class CRSService:
                     auth = crs_obj.to_authority()
                     if auth:
                         return f"{auth[0]}:{auth[1]}"
-                    return source_crs
+                    return clean_source
         except Exception:
             pass
 
-        # Compute centroid to determine UTM zone
         if geometry.is_empty:
             return "EPSG:3857"
 
         centroid = geometry.centroid
+
+        # Obtain centroid in WGS84 degrees (lon, lat)
         lon, lat = centroid.x, centroid.y
+        if crs_obj and crs_obj.is_projected:
+            # Source CRS was projected (e.g. in feet), so centroid.x/y are linear coordinates.
+            # Reproject centroid to WGS84 degrees to calculate optimal UTM zone.
+            try:
+                to_wgs84 = pyproj.Transformer.from_crs(clean_source, "EPSG:4326", always_xy=True)
+                lon, lat = to_wgs84.transform(centroid.x, centroid.y)
+            except Exception as e:
+                logger.warning(f"Could not convert projected centroid to WGS84: {e}")
 
         # Clamp lon to -180 .. 180
         if lon > 180.0:
@@ -137,13 +158,16 @@ class CRSService:
         if geometry.is_empty:
             return geometry
 
-        if source_crs == target_crs:
+        clean_source = cls.clean_crs_string(source_crs)
+        clean_target = cls.clean_crs_string(target_crs)
+
+        if clean_source == clean_target:
             return geometry
 
         try:
             transformer = pyproj.Transformer.from_crs(
-                source_crs,
-                target_crs,
+                clean_source,
+                clean_target,
                 always_xy=True
             )
             projected_geom = transform(transformer.transform, geometry)
