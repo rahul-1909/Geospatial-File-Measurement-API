@@ -16,10 +16,19 @@ class FileRecord(Base):
     feature_count = Column(Integer, default=0)
     status = Column(String(50), default="PENDING")  # PENDING, PROCESSING, COMPLETED, FAILED
     error_message = Column(Text, nullable=True)
+    warnings_json = Column(Text, default="[]")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     features = relationship("FeatureRecord", back_populates="file", cascade="all, delete-orphan", lazy="joined")
+
+    @property
+    def warnings(self):
+        import json
+        try:
+            return json.loads(self.warnings_json or "[]")
+        except Exception:
+            return []
 
 
 class FeatureRecord(Base):

@@ -22,6 +22,7 @@ class ParsedGeospatialData:
     file_type: str
     crs: str
     features: List[ParsedFeature] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
 
 
 class BaseGeospatialParser(ABC):

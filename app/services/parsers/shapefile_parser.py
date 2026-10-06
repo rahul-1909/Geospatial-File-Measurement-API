@@ -14,10 +14,12 @@ class ShapefileParser(BaseGeospatialParser):
     """
     Parser for ESRI Shapefiles bundled within .zip archives.
     Extracts geometric shapes, coordinate system (.prj), and DBF attribute tables.
+    Explicitly tracks missing .prj files and multi-layer archives.
     """
 
     def parse(self, file_path: Path) -> ParsedGeospatialData:
         filename = file_path.name
+        warnings: List[str] = []
 
         with temporary_extraction_dir() as temp_dir:
             if file_path.suffix.lower() == ".zip":
@@ -29,6 +31,10 @@ class ShapefileParser(BaseGeospatialParser):
                     raise CorruptGeospatialFileError(
                         "Zip archive does not contain a valid .shp file component."
                     )
+                if len(shp_files) > 1:
+                    warnings.append(
+                        f"Archive contains {len(shp_files)} shapefiles. Extracted primary layer: '{shp_files[0].name}'."
+                    )
                 target_shp = shp_files[0]
             elif file_path.suffix.lower() == ".shp":
                 target_shp = file_path
@@ -37,14 +43,20 @@ class ShapefileParser(BaseGeospatialParser):
 
             # Locate corresponding .prj file to detect CRS
             prj_file = target_shp.with_suffix(".prj")
-            crs = "EPSG:4326"
             if prj_file.exists():
                 try:
                     with open(prj_file, "r", encoding="utf-8", errors="ignore") as f:
                         prj_content = f.read()
                     crs = CRSService.parse_prj_file(prj_content)
                 except Exception:
-                    crs = "EPSG:4326"
+                    crs = "EPSG:4326 (assumed, corrupt .prj)"
+                    warnings.append("Corrupt or unreadable .prj file. Defaulted to EPSG:4326.")
+            else:
+                crs = "EPSG:4326 (assumed, missing .prj)"
+                warnings.append(
+                    "Missing .prj file in Shapefile archive. Defaulted to EPSG:4326 (WGS 84); "
+                    "if coordinates are in a projected system, calculations will be inaccurate."
+                )
 
             features: List[ParsedFeature] = []
 
@@ -101,5 +113,6 @@ class ShapefileParser(BaseGeospatialParser):
                 filename=filename,
                 file_type="SHAPEFILE_ZIP",
                 crs=crs,
-                features=features
+                features=features,
+                warnings=warnings
             )

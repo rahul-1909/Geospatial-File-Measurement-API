@@ -85,6 +85,7 @@ class FileService:
             parsed_data = ParserService.parse_file(destination_path)
             file_record.crs = parsed_data.crs
             file_record.feature_count = len(parsed_data.features)
+            file_record.warnings_json = json.dumps(parsed_data.warnings)
 
             # Process features and calculate measurements
             for feat in parsed_data.features:

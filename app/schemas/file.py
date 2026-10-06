@@ -23,6 +23,7 @@ class FileInfoResponse(BaseModel):
     file_size_bytes: Optional[int] = Field(None, description="Size in bytes")
     created_at: Optional[datetime] = Field(None, description="Timestamp of file upload")
     error_message: Optional[str] = Field(None, description="Error detail if processing failed")
+    warnings: List[str] = Field(default_factory=list, description="Non-fatal warnings (e.g., missing .prj)")
 
     model_config = ConfigDict(from_attributes=True)
 
