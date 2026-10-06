@@ -15,6 +15,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.db.session import Base, get_db
+from app.core.config import settings
 
 # Use in-memory SQLite database for isolated test execution
 TEST_DATABASE_URL = "sqlite:///:memory:"
@@ -40,8 +41,12 @@ def db_session():
 
 
 @pytest.fixture(scope="function")
-def client(db_session):
-    """TestClient that uses the test in-memory database."""
+def client(db_session, tmp_path: Path):
+    """TestClient that uses the test in-memory database and an isolated temp uploads directory."""
+    # Temporarily point settings.UPLOAD_DIR to tmp_path
+    orig_upload_dir = settings.UPLOAD_DIR
+    settings.UPLOAD_DIR = tmp_path
+
     def override_get_db():
         try:
             yield db_session
@@ -52,6 +57,7 @@ def client(db_session):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+    settings.UPLOAD_DIR = orig_upload_dir
 
 
 @pytest.fixture
