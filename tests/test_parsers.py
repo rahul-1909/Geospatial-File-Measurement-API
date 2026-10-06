@@ -81,3 +81,40 @@ def test_kml_parser_invalid_xml(tmp_path: Path):
 
     with pytest.raises(CorruptGeospatialFileError):
         parser.parse(bad_kml)
+
+
+def test_shapefile_missing_prj_warning(sample_data_dir: Path, tmp_path: Path):
+    import zipfile
+    src_zip = sample_data_dir / "sample_parcels.zip"
+    no_prj_zip = tmp_path / "parcels_no_prj.zip"
+
+    # Create zip without .prj
+    with zipfile.ZipFile(src_zip, "r") as z_in, zipfile.ZipFile(no_prj_zip, "w") as z_out:
+        for item in z_in.infolist():
+            if not item.filename.endswith(".prj"):
+                z_out.writestr(item, z_in.read(item.filename))
+
+    parser = ShapefileParser()
+    data = parser.parse(no_prj_zip)
+
+    assert "missing .prj" in data.crs.lower()
+    assert len(data.warnings) >= 1
+    assert any("missing .prj" in w.lower() for w in data.warnings)
+
+
+def test_zip_bomb_guard(tmp_path: Path):
+    import zipfile
+    from app.utils.file_utils import extract_zip_safely
+
+    bomb_zip = tmp_path / "bomb.zip"
+    # Create a 2MB uncompressed stream compressed with high ratio (all zeros)
+    large_zeros = b"\x00" * (2 * 1024 * 1024)
+    with zipfile.ZipFile(bomb_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("zero.bin", large_zeros)
+
+    target_dir = tmp_path / "extracted"
+    target_dir.mkdir()
+
+    with pytest.raises(CorruptGeospatialFileError) as exc_info:
+        extract_zip_safely(bomb_zip, target_dir)
+    assert "zip bomb" in str(exc_info.value.detail).lower()
